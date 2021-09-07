@@ -9,16 +9,16 @@ constexpr double kPi = 3.141592653589793238463;
 GerberMacro::GerberMacro() {
 	Primitives = 0;
 	PrimitivesLast = 0;
-	Modifiers = 0;
-	Inches = true;
+	modifiers_ = 0;
+	inches_ = true;
 	exposure_ = true;
-	NewModifiers = false;
+	new_modifiers_ = false;
 }
 
 
 GerberMacro::~GerberMacro() {
 	if (Primitives) delete   Primitives;
-	if (NewModifiers) delete[] Modifiers;
+	if (new_modifiers_) delete[] modifiers_;
 }
 
 
@@ -56,39 +56,39 @@ GerberMacro::PRIMITIVE_ITEM::~PRIMITIVE_ITEM() {
 }
 
 
-void GerberMacro::Add(std::shared_ptr<RenderCommand> Render) {
-	render_commands_.push_back(Render);
+void GerberMacro::Add(std::shared_ptr<RenderCommand> render) {
+	render_commands_.push_back(render);
 }
 
 
-double GerberMacro::Evaluate(OPERATOR_ITEM* Root) {
+double GerberMacro::Evaluate(OPERATOR_ITEM* root) {
 	double left, right;
 
-	if (!Root) return 0.0;
+	if (!root) return 0.0;
 
-	switch (Root->Operator) {
+	switch (root->Operator) {
 	case opAdd:
-		return Evaluate(Root->left_) + Evaluate(Root->right_);
+		return Evaluate(root->left_) + Evaluate(root->right_);
 
 	case opSubtract:
-		return Evaluate(Root->left_) - Evaluate(Root->right_);
+		return Evaluate(root->left_) - Evaluate(root->right_);
 
 	case opMultiply:
-		return Evaluate(Root->left_) * Evaluate(Root->right_);
+		return Evaluate(root->left_) * Evaluate(root->right_);
 
 	case opDivide:
-		return Evaluate(Root->left_) / Evaluate(Root->right_);
+		return Evaluate(root->left_) / Evaluate(root->right_);
 
 	case opVariable:
-		if (Root->Index > 0 && Root->Index <= ModifierCount) {
-			return Modifiers[Root->Index - 1];
+		if (root->Index > 0 && root->Index <= modifier_count_) {
+			return modifiers_[root->Index - 1];
 		}
 		else {
 			return 0.0;
 		}
 
 	case opLiteral:
-		return Root->Value;
+		return root->Value;
 
 	default:
 		return 0.0;
@@ -97,7 +97,7 @@ double GerberMacro::Evaluate(OPERATOR_ITEM* Root) {
 
 
 double GerberMacro::Get_mm(double number) {
-	if (Inches)
+	if (inches_)
 		number *= 25.4;
 
 	return number;
@@ -171,13 +171,13 @@ void GerberMacro::RenderLine(
 }
 
 
-bool GerberMacro::RenderCircle(PRIMITIVE_ITEM* Primitive) {
+bool GerberMacro::RenderCircle(PRIMITIVE_ITEM* primitive) {
 	constexpr int modifier_cnt = 5;
 	double modifier[modifier_cnt];
 
 	for (int j = 0; j < modifier_cnt; j++) {
-		if (j < Primitive->ModifierCount) {
-			modifier[j] = Evaluate(Primitive->Modifier[j]);
+		if (j < primitive->ModifierCount) {
+			modifier[j] = Evaluate(primitive->Modifier[j]);
 		}
 		else {
 			modifier[j] = 0.0;
@@ -222,13 +222,13 @@ bool GerberMacro::RenderCircle(PRIMITIVE_ITEM* Primitive) {
 }
 
 
-bool GerberMacro::RenderLineVector(PRIMITIVE_ITEM* Primitive) {
+bool GerberMacro::RenderLineVector(PRIMITIVE_ITEM* primitive) {
 	constexpr int modifier_count = 7;
 	double modifier[modifier_count];
 
 	for (int j = 0; j < modifier_count; j++) {
-		if (j < Primitive->ModifierCount) {
-			modifier[j] = Evaluate(Primitive->Modifier[j]);
+		if (j < primitive->ModifierCount) {
+			modifier[j] = Evaluate(primitive->Modifier[j]);
 		}
 		else {
 			modifier[j] = 0.0;
@@ -334,13 +334,13 @@ bool GerberMacro::RenderLineVector(PRIMITIVE_ITEM* Primitive) {
 }
 
 
-bool GerberMacro::RenderLineCenter(PRIMITIVE_ITEM* Primitive) {
+bool GerberMacro::RenderLineCenter(PRIMITIVE_ITEM* primitive) {
 	constexpr int modifier_count = 6;
 	double modifier[modifier_count];
 
 	for (int j = 0; j < modifier_count; j++) {
-		if (j < Primitive->ModifierCount) {
-			modifier[j] = Evaluate(Primitive->Modifier[j]);
+		if (j < primitive->ModifierCount) {
+			modifier[j] = Evaluate(primitive->Modifier[j]);
 		}
 		else {
 			modifier[j] = 0.0;
@@ -462,14 +462,14 @@ bool GerberMacro::RenderLineLowerLeft(PRIMITIVE_ITEM* primitive) {
 }
 
 
-bool GerberMacro::RenderOutline(PRIMITIVE_ITEM* Primitive) {
+bool GerberMacro::RenderOutline(PRIMITIVE_ITEM* primitive) {
 	std::shared_ptr<RenderCommand> render;
 
-	const int modifier_count = Primitive->ModifierCount;
+	const int modifier_count = primitive->ModifierCount;
 	double* modifier = new double[modifier_count];
 
 	for (int j = 0; j < modifier_count; j++) {
-		modifier[j] = Evaluate(Primitive->Modifier[j]);
+		modifier[j] = Evaluate(primitive->Modifier[j]);
 	}
 
 	if (modifier[0] == 0.0) {
@@ -740,15 +740,15 @@ bool GerberMacro::RenderMoire(PRIMITIVE_ITEM* primitive) {
 }
 
 
-bool GerberMacro::RenderThermal(PRIMITIVE_ITEM* Primitive) {
+bool GerberMacro::RenderThermal(PRIMITIVE_ITEM* primitive) {
 	std::shared_ptr<RenderCommand> render;
 
 	const int ModifierCount = 6;
 	double Modifier[ModifierCount];
 
 	for (int j = 0; j < ModifierCount; j++) {
-		if (j < Primitive->ModifierCount) {
-			Modifier[j] = Evaluate(Primitive->Modifier[j]);
+		if (j < primitive->ModifierCount) {
+			Modifier[j] = Evaluate(primitive->Modifier[j]);
 		}
 		else {
 			Modifier[j] = 0.0;
@@ -841,44 +841,43 @@ bool GerberMacro::RenderThermal(PRIMITIVE_ITEM* Primitive) {
 }
 
 
-bool GerberMacro::RenderAssignment(PRIMITIVE_ITEM* Primitive) {
+bool GerberMacro::RenderAssignment(PRIMITIVE_ITEM* primitive) {
 	int     j, t;
-	double* Temp;
+	double* temp;
 
-	if (Primitive->ModifierCount < 1) return false;
+	if (primitive->ModifierCount < 1) return false;
 
-	if (Primitive->Index > ModifierCount) {
-		t = ModifierCount;
-		ModifierCount = Primitive->Index;
+	if (primitive->Index > modifier_count_) {
+		t = modifier_count_;
+		modifier_count_ = primitive->Index;
 
-		Temp = new double[ModifierCount];
+		temp = new double[modifier_count_];
 		for (j = 0; j < t; j++) {
-			Temp[j] = Modifiers[j];
+			temp[j] = modifiers_[j];
 		}
-		for (; j < ModifierCount; j++) {
-			Temp[j] = 0.0;
+		for (; j < modifier_count_; j++) {
+			temp[j] = 0.0;
 		}
 
-		if (NewModifiers) delete[] Modifiers;
-		Modifiers = Temp;
-		NewModifiers = true;
+		if (new_modifiers_) delete[] modifiers_;
+		modifiers_ = temp;
+		new_modifiers_ = true;
 	}
 
-	Modifiers[Primitive->Index - 1] = Evaluate(Primitive->Modifier[0]);
-
+	modifiers_[primitive->Index - 1] = Evaluate(primitive->Modifier[0]);
 	return true;
 }
 
 
 std::vector<std::shared_ptr<RenderCommand>> GerberMacro::Render(double* Modifiers, int ModifierCount) {
 	render_commands_.clear();
-	if (NewModifiers) delete[] GerberMacro::Modifiers;
-	NewModifiers = false;
+	if (new_modifiers_) delete[] GerberMacro::modifiers_;
+	new_modifiers_ = false;
 
 	exposure_ = true;
 
-	GerberMacro::Modifiers = Modifiers;
-	GerberMacro::ModifierCount = ModifierCount;
+	GerberMacro::modifiers_ = Modifiers;
+	GerberMacro::modifier_count_ = ModifierCount;
 
 	PRIMITIVE_ITEM* Primitive = Primitives;
 	while (Primitive) {
@@ -930,54 +929,54 @@ std::vector<std::shared_ptr<RenderCommand>> GerberMacro::Render(double* Modifier
 }
 
 
-void GerberMacro::Add(PRIMITIVE_ITEM* Primitive) {
-	if (!Primitive) return;
+void GerberMacro::Add(PRIMITIVE_ITEM* primitive) {
+	if (!primitive) return;
 
 	if (Primitives) {
-		PrimitivesLast->Next = Primitive;
+		PrimitivesLast->Next = primitive;
 	}
 	else {
-		Primitives = Primitive;
+		Primitives = primitive;
 	}
 
-	PrimitivesLast = Primitive;
+	PrimitivesLast = primitive;
 }
 
 
-bool GerberMacro::Float(double* Number) {
+bool GerberMacro::Float(double* number) {
 	int       Integer = 0;
 	bool      Sign = false;
 	double    Scale = 0.1;
-	unsigned  i = Index;
+	unsigned  i = index_;
 
-	if (Index < Length && Buffer[Index] == '-') {
+	if (index_ < buffer_.size() && buffer_[index_] == '-') {
 		Sign = true;
-		Index++;
+		index_++;
 	}
-	else if (Index < Length && Buffer[Index] == '+') {
-		Index++;
+	else if (index_ < buffer_.size() && buffer_[index_] == '+') {
+		index_++;
 	}
 
-	while (Index < Length) {
-		if (Buffer[Index] >= '0' && Buffer[Index] <= '9') {
+	while (index_ < buffer_.size()) {
+		if (buffer_[index_] >= '0' && buffer_[index_] <= '9') {
 			Integer *= 10;
-			Integer += Buffer[Index] - '0';
-			Index++;
+			Integer += buffer_[index_] - '0';
+			index_++;
 		}
 		else {
 			break;
 		}
 	}
 
-	*Number = Integer;
+	*number = Integer;
 
-	if (Index < Length && Buffer[Index] == '.') {
-		Index++;
-		while (Index < Length) {
-			if (Buffer[Index] >= '0' && Buffer[Index] <= '9') {
-				*Number += (Buffer[Index] - '0') * Scale;
+	if (index_ < buffer_.size() && buffer_[index_] == '.') {
+		index_++;
+		while (index_ < buffer_.size()) {
+			if (buffer_[index_] >= '0' && buffer_[index_] <= '9') {
+				*number += (buffer_[index_] - '0') * Scale;
 				Scale *= 0.1;
-				Index++;
+				index_++;
 			}
 			else {
 				break;
@@ -985,50 +984,50 @@ bool GerberMacro::Float(double* Number) {
 		}
 	}
 
-	if (Index < Length) {
-		if (Sign) *Number *= -1.0;
-		return (Index > i);
+	if (index_ < buffer_.size()) {
+		if (Sign) *number *= -1.0;
+		return (index_ > i);
 	}
 
-	Index = i;
+	index_ = i;
 	return false;
 }
 
 
-bool GerberMacro::Integer(int* Integer) {
+bool GerberMacro::Integer(int* integer) {
 	bool     Sign = false;
-	unsigned i = Index;
+	unsigned i = index_;
 
-	*Integer = 0;
+	*integer = 0;
 
-	if (Index < Length && Buffer[Index] == '-') {
+	if (index_ < buffer_.size() && buffer_[index_] == '-') {
 		Sign = true;
-		Index++;
+		index_++;
 	}
-	else if (Index < Length && Buffer[Index] == '+') {
-		Index++;
+	else if (index_ < buffer_.size() && buffer_[index_] == '+') {
+		index_++;
 	}
 
-	while (Index < Length) {
-		if (Buffer[Index] >= '0' && Buffer[Index] <= '9') {
-			*Integer *= 10;
-			*Integer += Buffer[Index] - '0';
-			Index++;
+	while (index_ < buffer_.size()) {
+		if (buffer_[index_] >= '0' && buffer_[index_] <= '9') {
+			*integer *= 10;
+			*integer += buffer_[index_] - '0';
+			index_++;
 		}
 		else {
-			if (Sign) *Integer *= -1;
-			return (Index > i);
+			if (Sign) *integer *= -1;
+			return (index_ > i);
 		}
 	}
 
-	Index = i;
+	index_ = i;
 	return false;
 }
 
 
 void GerberMacro::SkipWhiteSpace() {
-	while (Index < Length) {
-		switch (Buffer[Index]) {
+	while (index_ < buffer_.size()) {
+		switch (buffer_[index_]) {
 		case ' ':
 		case '\t':
 		case '\r':
@@ -1038,24 +1037,24 @@ void GerberMacro::SkipWhiteSpace() {
 		default:
 			return;
 		}
-		Index++;
+		index_++;
 	}
 }
 
 
 // Term {("+" | "-") Term};
-GerberMacro::OPERATOR_ITEM* GerberMacro::Modifier() {
+GerberMacro::OPERATOR_ITEM* GerberMacro::modifier() {
 	OPERATOR       Operator;
-	OPERATOR_ITEM* left_;
-	OPERATOR_ITEM* Root;
+	OPERATOR_ITEM* left;
+	OPERATOR_ITEM* root;
 
 	SkipWhiteSpace();
 
-	left_ = Term();
-	if (!left_) return 0;
+	left = Term();
+	if (!left) return 0;
 
-	while (Index < Length) {
-		switch (Buffer[Index]) {
+	while (index_ < buffer_.size()) {
+		switch (buffer_[index_]) {
 		case '+':
 			Operator = opAdd;
 			break;
@@ -1065,19 +1064,19 @@ GerberMacro::OPERATOR_ITEM* GerberMacro::Modifier() {
 			break;
 
 		default:
-			return left_;
+			return left;
 		}
-		Index++;
+		index_++;
 
-		Root = new OPERATOR_ITEM;
-		Root->Operator = Operator;
-		Root->left_ = left_;
-		Root->right_ = Term();
+		root = new OPERATOR_ITEM;
+		root->Operator = Operator;
+		root->left_ = left;
+		root->right_ = Term();
 
-		left_ = Root;
+		left = root;
 	}
 
-	delete left_;
+	delete left;
 
 	return 0;
 }
@@ -1094,8 +1093,8 @@ GerberMacro::OPERATOR_ITEM* GerberMacro::Term() {
 	left_ = Factor();
 	if (!left_) return 0;
 
-	while (Index < Length) {
-		switch (Buffer[Index]) {
+	while (index_ < buffer_.size()) {
+		switch (buffer_[index_]) {
 		case 'x':
 		case 'X':
 			Operator = opMultiply;
@@ -1108,7 +1107,7 @@ GerberMacro::OPERATOR_ITEM* GerberMacro::Term() {
 		default:
 			return left_;
 		}
-		Index++;
+		index_++;
 
 		Root = new OPERATOR_ITEM;
 		Root->Operator = Operator;
@@ -1132,20 +1131,20 @@ GerberMacro::OPERATOR_ITEM* GerberMacro::Factor() {
 
 	SkipWhiteSpace();
 
-	if (Index >= Length) return 0;
-	if (Buffer[Index] == '-') {
+	if (index_ >= buffer_.size()) return 0;
+	if (buffer_[index_] == '-') {
 		negative_ = true;
-		Index++; SkipWhiteSpace();
+		index_++; SkipWhiteSpace();
 
 	}
-	else if (Buffer[Index] == '+') {
-		Index++; SkipWhiteSpace();
+	else if (buffer_[index_] == '+') {
+		index_++; SkipWhiteSpace();
 	}
 
-	if (Buffer[Index] == '(') {
-		Index++;
+	if (buffer_[index_] == '(') {
+		index_++;
 
-		Item = Modifier();
+		Item = modifier();
 		if (!Item) {
 			LOG(ERROR) << "Error: Expression expected";
 			return 0;
@@ -1153,12 +1152,12 @@ GerberMacro::OPERATOR_ITEM* GerberMacro::Factor() {
 
 		SkipWhiteSpace();
 
-		if (Buffer[Index] != ')') {
+		if (buffer_[index_] != ')') {
 			LOG(ERROR) << "Error: ')' expected";
 			delete Item;
 			return 0;
 		}
-		Index++;
+		index_++;
 
 	}
 	else {
@@ -1195,12 +1194,12 @@ GerberMacro::OPERATOR_ITEM* GerberMacro::Variable() {
 
 	SkipWhiteSpace();
 
-	if (Index >= Length)      return 0;
-	if (Buffer[Index] != '$') return 0;
-	Index++;
+	if (index_ >= buffer_.size())      return 0;
+	if (buffer_[index_] != '$') return 0;
+	index_++;
 
 	if (!Integer(&i)) {
-		Index--;
+		index_--;
 		return 0;
 	}
 
@@ -1213,9 +1212,9 @@ GerberMacro::OPERATOR_ITEM* GerberMacro::Variable() {
 
 
 bool GerberMacro::Comment() {
-	while (Index < Length) {
-		if (Buffer[Index] == '*') return true;
-		Index++;
+	while (index_ < buffer_.size()) {
+		if (buffer_[index_] == '*') return true;
+		index_++;
 	}
 
 	return false;
@@ -1244,10 +1243,10 @@ bool GerberMacro::Circle() {
 	SkipWhiteSpace();
 
 	j = 0;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break; // It is legal to specify fewer modifiers than the maximum
@@ -1283,10 +1282,10 @@ bool GerberMacro::Line_Vector() {
 	SkipWhiteSpace();
 
 	j = 0;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break;
@@ -1322,10 +1321,10 @@ bool GerberMacro::Line_Center() {
 	SkipWhiteSpace();
 
 	j = 0;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break;
@@ -1361,10 +1360,10 @@ bool GerberMacro::Line_LowerLeft() {
 	SkipWhiteSpace();
 
 	j = 0;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break;
@@ -1390,9 +1389,9 @@ bool GerberMacro::Outline() {
 
 	SkipWhiteSpace();
 
-	if (Index >= Length)      return false;
-	if (Buffer[Index] != ',') return false;
-	Index++;
+	if (index_ >= buffer_.size())      return false;
+	if (buffer_[index_] != ',') return false;
+	index_++;
 
 	SkipWhiteSpace();
 
@@ -1403,9 +1402,9 @@ bool GerberMacro::Outline() {
 
 	SkipWhiteSpace();
 
-	if (Index >= Length)      return false;
-	if (Buffer[Index] != ',') return false;
-	Index++;
+	if (index_ >= buffer_.size())      return false;
+	if (buffer_[index_] != ',') return false;
+	index_++;
 
 	SkipWhiteSpace();
 
@@ -1436,10 +1435,10 @@ bool GerberMacro::Outline() {
 	SkipWhiteSpace();
 
 	j = 2;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break;
@@ -1473,10 +1472,10 @@ bool GerberMacro::Polygon() {
 	SkipWhiteSpace();
 
 	j = 0;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break;
@@ -1510,10 +1509,10 @@ bool GerberMacro::Moire() {
 	SkipWhiteSpace();
 
 	j = 0;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break;
@@ -1547,10 +1546,10 @@ bool GerberMacro::Thermal() {
 	SkipWhiteSpace();
 
 	j = 0;
-	while (b && Index < Length && j < ModifierCount) {
-		if (Buffer[Index] == ',') {
-			Index++;
-			b = (Item->Modifier[j++] = Modifier());
+	while (b && index_ < buffer_.size() && j < ModifierCount) {
+		if (buffer_[index_] == ',') {
+			index_++;
+			b = (Item->Modifier[j++] = modifier());
 		}
 		else {
 			break;
@@ -1573,15 +1572,15 @@ bool GerberMacro::Assignment() {
 
 	SkipWhiteSpace();
 
-	if (Index > Length)       return false;
-	if (Buffer[Index] != '=') return false;
-	Index++;
+	if (index_ > buffer_.size())       return false;
+	if (buffer_[index_] != '=') return false;
+	index_++;
 
 	Item = new PRIMITIVE_ITEM;
 	Item->Primitive = pAssignment;
 	Item->ModifierCount = 1;
 	Item->Modifier = new OPERATOR_ITEM * [1];
-	Item->Modifier[0] = Modifier();
+	Item->Modifier[0] = modifier();
 	Item->Index = VarIndex;
 
 	if (!Item->Modifier[0]) {
@@ -1602,11 +1601,11 @@ bool GerberMacro::Primitive() {
 
 	SkipWhiteSpace();
 
-	if (Index >= Length) return false;
+	if (index_ >= buffer_.size()) return false;
 
 	if (!Integer(&Identifier)) {
-		if (Buffer[Index] == '$') {
-			Index++;
+		if (buffer_[index_] == '$') {
+			index_++;
 			Identifier = pAssignment;
 		}
 		else {
@@ -1651,7 +1650,7 @@ bool GerberMacro::Primitive() {
 		return Assignment();
 
 	default:
-		LOG(ERROR) << "Error: Unknown Macro Primitive: " << Buffer[Index];
+		LOG(ERROR) << "Error: Unknown Macro Primitive: " << buffer_[index_];
 		return false;
 	}
 
@@ -1659,28 +1658,26 @@ bool GerberMacro::Primitive() {
 	return false;
 }
 
-
-bool GerberMacro::LoadMacro(const char* buffer, unsigned Length, bool Inches) {
-	GerberMacro::Buffer = buffer;
-	GerberMacro::Length = Length;
-	GerberMacro::Inches = Inches;
-	GerberMacro::Index = 0;
+bool GerberMacro::LoadMacro(const std::string& buffer, bool Inches) {
+	GerberMacro::buffer_ = buffer;
+	GerberMacro::inches_ = Inches;
+	GerberMacro::index_ = 0;
 
 	if (!Primitive())         return false;
 	SkipWhiteSpace();
-	if (Index >= Length)      return false;
-	if (buffer[Index] != '*') return false;
-	Index++;
+	if (index_ >= buffer_.size())      return false;
+	if (buffer[index_] != '*') return false;
+	index_++;
 	SkipWhiteSpace();
 
 	while (Primitive()) {
 		SkipWhiteSpace();
-		if (Index >= Length)      return false;
-		if (buffer[Index] != '*') return false;
-		Index++;
+		if (index_ >= buffer_.size())      return false;
+		if (buffer[index_] != '*') return false;
+		index_++;
 		SkipWhiteSpace();
 	}
 
-	return Index == Length;
+	return index_ == buffer_.size();
 }
 

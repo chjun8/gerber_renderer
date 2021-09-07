@@ -12,13 +12,27 @@
 #include <glog/logging.h>
 
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 
 
 bool gerber_warnings = true;
 
 Gerber::Gerber(const std::string& file_name) : file_name_(file_name) {
+	Init();
+	LoadGerber(file_name);
+}
+
+Gerber::Gerber(const std::vector<char>& gerber_data)
+{
+	Init();
+	LoadGerber(gerber_data);
+}
+
+void Gerber::Init()
+{
 	gerber_file_.buffer_.clear();
-	gerber_file_.index_ = 0;
+	gerber_file_.pointer_ = 0;
 
 	units_ = guInches;
 
@@ -41,10 +55,7 @@ Gerber::Gerber(const std::string& file_name) : file_name_(file_name) {
 	parsers_['M'] = std::make_shared<MCodeParser>(*this);
 	parsers_['*'] = std::make_shared<StarParser>(*this);
 	parsers_['0'] = std::make_shared<ParameterParser>(*this);
-
-	LoadGerber(file_name);
 }
-
 
 Gerber::~Gerber() {
 }
@@ -127,11 +138,18 @@ std::shared_ptr<Parser> Gerber::GetParser(char code)
 }
 
 bool Gerber::LoadGerber(const std::string& file_name) {
-	start_of_level_ = false;
-
-	if (!gerber_file_.Load(file_name)) {
+	std::ifstream file(file_name, std::ios::in);
+	if (!file) {
+		std::cout << "failed to open gerber file." << std::endl;
 		return false;
 	}
 
+	return LoadGerber(std::vector<char>{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() });
+}
+
+bool Gerber::LoadGerber(const std::vector<char>& gerber_data)
+{
+	start_of_level_ = false;
+	gerber_file_.Load(gerber_data);
 	return ParseGerber();
 }

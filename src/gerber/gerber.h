@@ -51,9 +51,11 @@ private:
 	bool negative_{ false };
 	std::vector<std::shared_ptr<GerberLevel>> levels_;
 
+	void Init();
 	bool ParseGerber();
 	void Add(std::shared_ptr<GerberLevel> level);
 	bool LoadGerber(const std::string& file_name);
+	bool LoadGerber(const std::vector<char>& gerber_data);
 
 	std::shared_ptr<Parser> GetParser(char code);
 	std::vector<std::shared_ptr<GerberAperture>> apertures_;
@@ -72,6 +74,7 @@ private:
 
 public:
 	Gerber(const std::string& file_name);
+	Gerber(const std::vector<char>& gerber_data);
 	~Gerber();
 
 	bool IsNegative() const;

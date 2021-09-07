@@ -6,10 +6,11 @@ class GerberFile {
 public:
 	std::vector<char> buffer_;
 
-	unsigned index_{ 0 };
+	unsigned pointer_{ 0 };
 	unsigned line_number_{ 1 };
 
-	bool Load(const std::string& file_name);
+	bool Load(const std::vector<char>& data);
+
 	bool EndOfFile();
 	bool SkipWhiteSpace();
 
@@ -25,4 +26,8 @@ public:
 	bool GetInteger(int& integer);
 	bool GetFloat(double& number);
 	bool GetCoordinate(double& number, int integer, int decimal, bool omit_trailing_zeroes);
+
+private:
+	bool IsNumber(char cur_char);
+	bool GetSign();
 };

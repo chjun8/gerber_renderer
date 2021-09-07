@@ -12,14 +12,14 @@ ParameterParser::~ParameterParser()
 }
 
 bool ParameterParser::Run() {
-	auto delimiter = gerber_.gerber_file_.buffer_[gerber_.gerber_file_.index_ - 1];
+	auto delimiter = gerber_.gerber_file_.buffer_[gerber_.gerber_file_.pointer_ - 1];
 
 	gerber_.gerber_file_.SkipWhiteSpace();
 
-	while (gerber_.gerber_file_.index_ < gerber_.gerber_file_.buffer_.size() - 1) {
+	while (gerber_.gerber_file_.pointer_ < gerber_.gerber_file_.buffer_.size() - 1) {
 		auto first = gerber_.gerber_file_.PeekChar();
 		if (first == delimiter) {
-			gerber_.gerber_file_.index_ += 1;
+			gerber_.gerber_file_.pointer_ += 1;
 			return true;
 		}
 
@@ -29,13 +29,13 @@ bool ParameterParser::Run() {
 		code += second;
 
 		if (code == "AD") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ApertureDefinition()) {
 				return false;
 			}
 		}
 		else if (code == "AM") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ApertureMacro()) {
 				return false;
 			}
@@ -44,31 +44,31 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: AS";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!AxisSelect()) {
 				return false;
 			}
 		}
 		else if (code == "FS") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!FormatStatement()) {
 				return false;
 			}
 		}
 		else if (code == "IC") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!IC()) {
 				return false;
 			}
 		}
 		else if (code == "IF") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!IncludeFile()) {
 				return false;
 			}
 		}
 		else if (code == "IJ") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ImageJustify()) {
 				return false;
 			}
@@ -77,13 +77,13 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: IN";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ImageName()) {
 				return false;
 			}
 		}
 		else if (code == "IO") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ImageOffset()) {
 				return false;
 			}
@@ -92,7 +92,7 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: IP";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ImagePolarity()) {
 				return false;
 			}
@@ -101,13 +101,13 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: IR";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ImageRotation()) {
 				return false;
 			}
 		}
 		else if (code == "KO") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!Knockout()) {
 				return false;
 			}
@@ -116,13 +116,13 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: LN";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!LevelName()) {
 				return false;
 			}
 		}
 		else if (code == "LP") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!LevelPolarity()) {
 				return false;
 			}
@@ -131,13 +131,13 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: MI";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!MirrorImage()) {
 				return false;
 			}
 		}
 		else if (code == "MO") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!Mode()) {
 				return false;
 			}
@@ -146,13 +146,13 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: OF";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!Offset()) {
 				return false;
 			}
 		}
 		else if (code == "PF") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!PlotFilm()) {
 				return false;
 			}
@@ -161,37 +161,37 @@ bool ParameterParser::Run() {
 			if (gerber_warnings) {
 				LOG(WARNING) << "Line " << gerber_.gerber_file_.line_number_ << " - Warning: Deprecated command: SF";
 			}
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!ScaleFactor()) {
 				return false;
 			}
 		}
 		else if (code == "SR") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!StepAndRepeat()) {
 				return false;
 			}
 		}
 		else if (code == "IA") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!Attribute()) {
 				return false; // Aperture Attribute
 			}
 		}
 		else if (code == "TD") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!Attribute()) {
 				return false; // Delete Attribute
 			}
 		}
 		else if (code == "TF") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!Attribute()) {
 				return false; // File Attribute
 			}
 		}
 		else if (code == "TO") {
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 			if (!Attribute()) {
 				return false; // Object Attribute
 			}
@@ -272,7 +272,7 @@ bool ParameterParser::ApertureCircle(int code) {
 	double x = -1.0;
 	double y = -1.0;
 	if (gerber_.gerber_file_.PeekChar() == 'X') {
-		gerber_.gerber_file_.index_++;
+		gerber_.gerber_file_.pointer_++;
 		if (!gerber_.gerber_file_.GetFloat(x)) {
 			return false;
 		}
@@ -282,7 +282,7 @@ bool ParameterParser::ApertureCircle(int code) {
 		}
 
 		if (gerber_.gerber_file_.PeekChar() == 'Y') {
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			if (!gerber_.gerber_file_.GetFloat(y)) {
 				return false;
 			}
@@ -310,14 +310,14 @@ bool ParameterParser::ApertureCircle(int code) {
 }
 
 bool ParameterParser::ApertureRectangle(int code) {
-	double w, h, x, y;
-
-	w = h = 0.0;
-	x = y = -1.0;
-
 	if (!gerber_.gerber_file_.QueryCharUntilNotWhiteSpace(',')) {
 		return false;
 	}
+
+	double w = 0.0;
+	double h = 0.0;
+	double x = 0.0;
+	double y = -1.0;
 
 	if (!gerber_.gerber_file_.GetFloat(w)) {
 		return false;
@@ -336,7 +336,7 @@ bool ParameterParser::ApertureRectangle(int code) {
 	}
 
 	if (gerber_.gerber_file_.PeekChar() == 'X') {
-		gerber_.gerber_file_.index_++;
+		gerber_.gerber_file_.pointer_++;
 		if (!gerber_.gerber_file_.GetFloat(x)) {
 			return false;
 		}
@@ -346,7 +346,7 @@ bool ParameterParser::ApertureRectangle(int code) {
 		}
 
 		if (gerber_.gerber_file_.PeekChar() == 'Y') {
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			if (!gerber_.gerber_file_.GetFloat(y)) {
 				return false;
 			}
@@ -372,10 +372,10 @@ bool ParameterParser::ApertureRectangle(int code) {
 }
 
 bool ParameterParser::ApertureObround(int code) {
-	double w, h, x, y;
-
-	w = h = 0.0;
-	x = y = -1.0;
+	double w = 0.0;
+	double h = 0.0;
+	double x = 0.0;
+	double y = -1.0;
 
 	if (!gerber_.gerber_file_.QueryCharUntilNotWhiteSpace(',')) {
 		return false;
@@ -398,13 +398,13 @@ bool ParameterParser::ApertureObround(int code) {
 	}
 
 	if (gerber_.gerber_file_.PeekChar() == 'X') {
-		gerber_.gerber_file_.index_++;
+		gerber_.gerber_file_.pointer_++;
 		if (!gerber_.gerber_file_.GetFloat(x) || gerber_.gerber_file_.SkipWhiteSpace()) {
 			return false;
 		}
 
 		if (gerber_.gerber_file_.PeekChar() == 'Y') {
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			if (!gerber_.gerber_file_.GetFloat(y)) {
 				return false;
 			}
@@ -430,15 +430,12 @@ bool ParameterParser::ApertureObround(int code) {
 }
 
 bool ParameterParser::AperturePolygon(int code) {
-	int    n;
-	double w, a, x, y, tmp;
-	std::shared_ptr<GerberAperture> aperture;
-
-	n = 0;
-	w = 0.0;
-	a = 0.0;
-	x = -1.0;
-	y = -1.0;
+	int n = 0;
+	double w = 0.0;
+	double a = 0.0;
+	double x = -1.0;
+	double y = -1.0;
+	double tmp = 0.0;
 
 	if (!gerber_.gerber_file_.QueryCharUntilNotWhiteSpace(',')) {
 		return false;
@@ -463,19 +460,19 @@ bool ParameterParser::AperturePolygon(int code) {
 	}
 
 	if (gerber_.gerber_file_.GetChar() == 'X') {
-		gerber_.gerber_file_.index_++;
+		gerber_.gerber_file_.pointer_++;
 		if (!gerber_.gerber_file_.GetFloat(a) || gerber_.gerber_file_.SkipWhiteSpace()) {
 			return false;
 		}
 
 		if (gerber_.gerber_file_.PeekChar() == 'X') {
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			if (!gerber_.gerber_file_.GetFloat(x) || gerber_.gerber_file_.SkipWhiteSpace()) {
 				return false;
 			}
 
 			if (gerber_.gerber_file_.PeekChar() == 'Y') {
-				gerber_.gerber_file_.index_++;
+				gerber_.gerber_file_.pointer_++;
 				if (!gerber_.gerber_file_.GetFloat(y)) {
 					return false;
 				}
@@ -487,7 +484,7 @@ bool ParameterParser::AperturePolygon(int code) {
 		return false;
 	}
 
-	aperture = std::make_shared<GerberAperture>();
+	auto aperture = std::make_shared<GerberAperture>();
 	aperture->code_ = code;
 	aperture->Polygon(Get_mm(w), n, a);
 	if (x > 0.0) {
@@ -504,8 +501,8 @@ bool ParameterParser::AperturePolygon(int code) {
 bool ParameterParser::ApertureMacro(int code, const std::string& name) {
 	// Variable length array; Null terminated
 	double* modifiers = new double[16];
-	int     modifiers_size = 16;
-	int     modifiers_length_ = 0;
+	int modifiers_size = 16;
+	int modifiers_length_ = 0;
 
 	auto macro = FindMacro(name.c_str());
 	if (!macro) {
@@ -533,7 +530,7 @@ bool ParameterParser::ApertureMacro(int code, const std::string& name) {
 
 		return Add(aperture);
 	}
-	gerber_.gerber_file_.index_++;
+	gerber_.gerber_file_.pointer_++;
 
 	if (!gerber_.gerber_file_.GetFloat(*modifiers)) {
 		delete[] modifiers;
@@ -545,7 +542,7 @@ bool ParameterParser::ApertureMacro(int code, const std::string& name) {
 
 	while (!gerber_.gerber_file_.EndOfFile()) {
 		if (gerber_.gerber_file_.PeekChar() == 'X') {
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 
 			if (modifiers_length_ == modifiers_size) {
 				modifiers_size <<= 1;
@@ -589,7 +586,7 @@ bool ParameterParser::ApertureMacro() {
 	}
 
 	auto macro = std::make_shared<GerberMacro>();
-	macro->Name = name;
+	macro->name_ = name;
 
 	if (!gerber_.gerber_file_.QueryCharUntilNotWhiteSpace('*')) {
 		return false;
@@ -597,10 +594,10 @@ bool ParameterParser::ApertureMacro() {
 
 	gerber_.gerber_file_.SkipWhiteSpace();
 
-	auto j = gerber_.gerber_file_.index_;
+	auto j = gerber_.gerber_file_.pointer_;
 	while (!gerber_.gerber_file_.EndOfFile()) {
 		if (gerber_.gerber_file_.PeekChar() == '%') {
-			if (macro->LoadMacro(gerber_.gerber_file_.buffer_.data() + j, gerber_.gerber_file_.index_ - j, gerber_.units_ == guInches)) {
+			if (macro->LoadMacro(std::string(gerber_.gerber_file_.buffer_.data() + j, gerber_.gerber_file_.pointer_ - j), gerber_.units_ == guInches)) {
 				Add(macro);
 			}
 			else {
@@ -608,7 +605,7 @@ bool ParameterParser::ApertureMacro() {
 			}
 			return true;
 		}
-		gerber_.gerber_file_.index_++;
+		gerber_.gerber_file_.pointer_++;
 		gerber_.gerber_file_.SkipWhiteSpace();
 	}
 
@@ -627,7 +624,7 @@ bool ParameterParser::FormatStatement() {
 
 	gerber_.gerber_file_.SkipWhiteSpace();
 
-	while (gerber_.gerber_file_.index_ < gerber_.gerber_file_.buffer_.size() - 1) {
+	while (gerber_.gerber_file_.pointer_ < gerber_.gerber_file_.buffer_.size() - 1) {
 		switch (gerber_.gerber_file_.PeekChar()) {
 		case 'L':
 			gerber_.format_.omit_trailing_zeroes_ = false;
@@ -649,30 +646,30 @@ bool ParameterParser::FormatStatement() {
 		case 'G':
 		case 'D':
 		case 'M':
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			break;
 
 		case 'X':
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			gerber_.format_.XInteger = gerber_.gerber_file_.GetChar() - '0';
 			gerber_.format_.XDecimal = gerber_.gerber_file_.PeekChar() - '0';
 			break;
 
 		case 'Y':
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			gerber_.format_.YInteger = gerber_.gerber_file_.GetChar() - '0';
 			gerber_.format_.YDecimal = gerber_.gerber_file_.PeekChar() - '0';
 			break;
 
 		case '*':
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			return true;
 
 		default:
 			LOG(ERROR) << "Line " << gerber_.gerber_file_.line_number_ << " - Error: Unrecognised FS modifier: " << gerber_.gerber_file_.PeekChar();
 			return false;
 		}
-		gerber_.gerber_file_.index_++;
+		gerber_.gerber_file_.pointer_++;
 		gerber_.gerber_file_.SkipWhiteSpace();
 	}
 
@@ -705,15 +702,15 @@ bool ParameterParser::Mode() {
 
 	gerber_.gerber_file_.SkipWhiteSpace();
 
-	while (gerber_.gerber_file_.index_ < gerber_.gerber_file_.buffer_.size() - 1) {
+	while (gerber_.gerber_file_.pointer_ < gerber_.gerber_file_.buffer_.size() - 1) {
 		if (gerber_.gerber_file_.PeekChar() == 'I' && gerber_.gerber_file_.PeekNextChar() == 'N') {
 			gerber_.units_ = guInches;
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 
 		}
 		else if (gerber_.gerber_file_.PeekChar() == 'M' && gerber_.gerber_file_.PeekNextChar() == 'M') {
 			gerber_.units_ = guMillimeters;
-			gerber_.gerber_file_.index_ += 2;
+			gerber_.gerber_file_.pointer_ += 2;
 
 		}
 		else if (gerber_.gerber_file_.PeekChar() == '*') {
@@ -721,7 +718,7 @@ bool ParameterParser::Mode() {
 				gerber_.current_level_->units_ = gerber_.units_;
 			}
 
-			gerber_.gerber_file_.index_++;
+			gerber_.gerber_file_.pointer_++;
 			return true;
 
 		}
@@ -862,28 +859,28 @@ bool ParameterParser::ImageOffset() {
 }
 
 bool ParameterParser::ImagePolarity() {
-
 	gerber_.start_of_level_ = false;
 
 	gerber_.gerber_file_.SkipWhiteSpace();
-	if (gerber_.gerber_file_.index_ >= gerber_.gerber_file_.buffer_.size() - 2) {
+	if (gerber_.gerber_file_.pointer_ >= gerber_.gerber_file_.buffer_.size() - 2) {
 		return false;
 	}
+
 	if (gerber_.gerber_file_.PeekChar() == 'P' &&
 		gerber_.gerber_file_.PeekNextChar() == 'O' &&
-		gerber_.gerber_file_.buffer_[gerber_.gerber_file_.index_ + 2] == 'S') {
+		gerber_.gerber_file_.buffer_[gerber_.gerber_file_.pointer_ + 2] == 'S') {
 		gerber_.negative_ = false;
 	}
 	else if (gerber_.gerber_file_.PeekChar() == 'N' &&
 		gerber_.gerber_file_.PeekNextChar() == 'E' &&
-		gerber_.gerber_file_.buffer_[gerber_.gerber_file_.index_ + 2] == 'G') {
+		gerber_.gerber_file_.buffer_[gerber_.gerber_file_.pointer_ + 2] == 'G') {
 		gerber_.negative_ = true;
 	}
 	else {
 		LOG(ERROR) << "Line " << gerber_.gerber_file_.line_number_ << " - Error: Unknown Image Polarity";
 		return false;
 	}
-	gerber_.gerber_file_.index_ += 3;
+	gerber_.gerber_file_.pointer_ += 3;
 
 	if (!gerber_.gerber_file_.QueryCharUntilNotWhiteSpace('*')) {
 		return false;
@@ -967,17 +964,16 @@ bool ParameterParser::PlotFilm() {
 }
 
 bool ParameterParser::StepAndRepeat() {
-	int          x, y;
-	double       i, j;
-
 	if (!gerber_.start_of_level_) {
 		auto level = std::make_shared<GerberLevel>(gerber_.current_level_, gerber_.units_);
 		gerber_.Add(level);
 	}
 	gerber_.start_of_level_ = true;
 
-	x = y = 1;
-	i = j = 0.0;
+	int x = 1;
+	int y = 1;
+	double i = 0.0;
+	double j = 0.0;
 
 	gerber_.gerber_file_.SkipWhiteSpace();
 	while (!gerber_.gerber_file_.EndOfFile()) {
@@ -1044,7 +1040,7 @@ void ParameterParser::Add(std::shared_ptr<GerberMacro> Macro) {
 
 std::shared_ptr<GerberMacro> ParameterParser::FindMacro(const std::string& Name) {
 	for (const auto& macro : macros_) {
-		if (macro->Name == Name) {
+		if (macro->name_ == Name) {
 			return macro;
 		}
 	}

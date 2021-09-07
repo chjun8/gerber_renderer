@@ -9,8 +9,6 @@ GCodeParser::GCodeParser(Gerber& gerber) :gerber_(gerber) {
 }
 
 bool GCodeParser::Run() {
-	std::shared_ptr<GerberLevel> level;
-
 	gerber_.start_of_level_ = false;
 
 	int code;
@@ -19,7 +17,7 @@ bool GCodeParser::Run() {
 	}
 
 	if (!gerber_.current_level_ && code != 4) {
-		level = std::make_shared<GerberLevel>(gerber_.current_level_, gerber_.units_);
+		auto level = std::make_shared<GerberLevel>(gerber_.current_level_, gerber_.units_);
 		gerber_.Add(level);
 	}
 
@@ -43,7 +41,7 @@ bool GCodeParser::Run() {
 
 	case 4: // Ignore block
 		while (!gerber_.gerber_file_.EndOfFile() && gerber_.gerber_file_.GetChar() != '*');
-		gerber_.gerber_file_.index_++;
+		gerber_.gerber_file_.pointer_++;
 		return !gerber_.gerber_file_.EndOfFile();
 
 	case 10: // Linear interpolation 10X scale

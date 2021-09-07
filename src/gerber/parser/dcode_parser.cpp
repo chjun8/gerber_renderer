@@ -18,8 +18,9 @@ bool DCodeParser::Run() {
 	gerber_.start_of_level_ = false;
 
 	int code;
-	if (!gerber_.gerber_file_.GetInteger(code))
+	if (!gerber_.gerber_file_.GetInteger(code)) {
 		return false;
+	}
 
 	switch (code) {
 	case 1: // Draw line, exposure on

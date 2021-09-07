@@ -5,13 +5,52 @@
 
 #include "gerber_renderer.h"
 #include "engine/qt_engine.h"
+#include "gerber_group.h"
 
 #include <gflags/gflags.h>
-#include "main.h"
+
 
 DEFINE_string(gerber_files, "", "The path of gerber files you want to export.If there are more than one file, separate them with ','.");
 DEFINE_string(output_path, "", "Output path of rendered image files");
 DEFINE_double(um_pixel, 5, "How much um/pixel.Default value is 5um/pixel");
+
+
+QString GetExportFileName(std::shared_ptr<Gerber> gerber, int i, int j) {
+	auto file_name = QString(gerber->FileName().c_str()).split('/').last();
+	auto image_file = QString(FLAGS_output_path.c_str()) + file_name + '_' + QString("%1").arg(i) + '_' + QString("%1").arg(j) + ".bmp";
+	return image_file;
+}
+
+std::pair<int, int> GetPiecePixelSize(const std::pair<int, int>& origin_pix_size, int width) {
+	if (origin_pix_size.first > origin_pix_size.second) {
+		return { width , width * origin_pix_size.second / origin_pix_size.first };
+	}
+
+	return { width * origin_pix_size.first / origin_pix_size.second, width };
+}
+
+void ExportGerber(std::shared_ptr<Gerber> gerber, const BoundBox& box, const std::pair<int, int>& piece_pix_size, const std::pair<int, int>& total_pix_size)
+{
+	auto image = std::make_unique<QBitmap>(piece_pix_size.first, piece_pix_size.second);
+	auto engine = std::make_unique<QtEngine>(image.get(), box, BoundBox(0.0, 0.0, 0.0, 0.0));
+	GerberRender render(engine.get());
+
+	int y_piece_cnt = (total_pix_size.second - 1) / piece_pix_size.second + 1;
+	int x_piece_cnt = (total_pix_size.first - 1) / piece_pix_size.first + 1;
+
+	engine->Scale(std::max(x_piece_cnt, y_piece_cnt) - 1);
+
+	for (int i = 0; i < y_piece_cnt; ++i) {
+		for (int j = 0; j < x_piece_cnt; ++j) {
+			render.RenderGerber(gerber);
+			image->save(GetExportFileName(gerber, i, j));
+
+			engine->Move(-piece_pix_size.first, 0);
+		}
+
+		engine->Move(piece_pix_size.first * x_piece_cnt, -piece_pix_size.second);
+	}
+}
 
 int main(int argc, char* argv[]) {
 	gflags::SetUsageMessage("Usage: gerber2image --gerber_files=\"path/to/gerber/file1, path/to/gerber/file2...\" --output_path=\"path/\" --um_pixel=5.\
@@ -25,70 +64,13 @@ int main(int argc, char* argv[]) {
 		dir.mkpath(FLAGS_output_path.c_str());
 	}
 
-	QString files(FLAGS_gerber_files.c_str());
-	auto file_list = files.split(',', Qt::SkipEmptyParts);
+	GerberGroup gerber_group(FLAGS_gerber_files.c_str());
+	const auto total_pix_size = gerber_group.GetPixelSize(FLAGS_um_pixel);
 
-	std::vector<std::shared_ptr<Gerber>> gerbers;
-	for (const auto file : file_list) {
-		gerbers.push_back(std::make_shared<Gerber>(file.toLocal8Bit().toStdString()));
-	}
-
-	BoundBox box;
-	for (const auto gerber : gerbers) {
-		box.UpdateBox(gerber->GetBBox());
-	}
-
-	for (const auto gerber : gerbers) {
-		auto width = box.Right() - box.Left();
-		auto height = box.Top() - box.Bottom();
-		auto unit = gerber->Unit();
-		if (unit == GERBER_UNIT::guInches) {
-			width *= 25.4;
-			height *= 25.4;
-		}
-
-		const auto pixel_w = width * 1000 / FLAGS_um_pixel;
-		const auto pixel_h = height * 1000 / FLAGS_um_pixel;
-
-		int img_w = 0;
-		int img_h = 0;
-		if (pixel_w > pixel_h) {
-			img_h = 20000 * pixel_h / pixel_w;
-			img_w = 20000;
-		}
-		else {
-			img_w = 20000 * pixel_w / pixel_h;
-			img_h = 20000;
-		}
-
-		ExportGerber(gerber, box, img_w, img_h, pixel_w, pixel_h);
+	for (const auto gerber : gerber_group) {
+		const auto piece_pix_size = GetPiecePixelSize(total_pix_size, 20000);
+		ExportGerber(gerber, gerber_group.GetBoundBox(), piece_pix_size, total_pix_size);
 	}
 
 	return 0;
-}
-
-void ExportGerber(std::shared_ptr<Gerber> gerber, const BoundBox& box, int img_w, int img_h, int pixel_w, int pixel_h)
-{
-	auto image = std::make_unique<QBitmap>(img_w, img_h);
-	auto engine = std::make_unique<QtEngine>(image.get(), box, BoundBox(0.0, 0.0, 0.0, 0.0));
-	GerberRender render(engine.get());
-
-	int height_scale = (pixel_h - 1) / img_h + 1;
-	int width_scale = (pixel_w - 1) / img_w + 1;
-
-	engine->Scale(std::max(width_scale, height_scale) - 1);
-
-	for (int i = 0; i < height_scale; ++i) {
-		for (int j = 0; j < width_scale; ++j) {
-			render.RenderGerber(gerber);
-
-			auto file_name = QString(gerber->FileName().c_str()).split('/').last();
-			auto image_file = QString(FLAGS_output_path.c_str()) + file_name + '_' + QString("%1").arg(i) + '_' + QString("%1").arg(j) + ".bmp";
-			image->save(image_file);
-
-			engine->Move(-img_w, 0);
-		}
-
-		engine->Move(img_w * width_scale, -img_h);
-	}
 }

@@ -71,7 +71,7 @@ cmake .. -G "NMake Makefiles" -DBUILD_EXAMPLES=OFF -DBUILD_TESTS=ON -DBUILD_TEST
 ```
 
 
-## 构建
+## Build
 Linux(Ubuntu) or Mac:
 ```make```
 

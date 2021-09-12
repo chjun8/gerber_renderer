@@ -5,6 +5,7 @@
 
 #include "gerber_macro.h"
 #include "gerber_command.h"
+#include "bound_box.h"
 
 
 class GerberMacro;
@@ -42,18 +43,14 @@ private:
 	// Regular Polygon additional modifiers
 	int side_count_; // Number of sides
 	double rotation_;  // Degrees of rotaion (rotate the whole thing CCW)
-
+    
 public:
 	GerberAperture();
 	~GerberAperture();
 
-	// Image bounding box
-	double left_;
-	double bottom_;
-	double right_;
-	double top_;
+    BoundBox bound_box_;
 
-	int  code_; // The code to use in the D-Code to load this tool
+	int code_; // The code to use in the D-Code to load this tool
 
 	// Standard Aperture Generators
 	void Circle(double d);

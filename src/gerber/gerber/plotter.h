@@ -22,19 +22,19 @@ public:
 	}
 
 	void SetPreX(double pre_x) {
-		preX = pre_x;
+		pre_x_ = pre_x;
 	}
 
 	double GetPreX() const {
-		return preX;
+		return pre_x_;
 	}
 
 	void SetPreY(double pre_y) {
-		preY = pre_y;
+		pre_y_ = pre_y;
 	}
 
 	double GetPreY() const {
-		return preY;
+		return pre_y_;
 	}
 
 	std::shared_ptr<GerberAperture> GetCurrentAperture() const {
@@ -62,8 +62,8 @@ private:
 	bool outline_fill_{ false };
 
 	bool in_path_{ false };
-	double preX{ 0.0 }, preY{ 0.0 };
-	double firstX{ 0.0 }, firstY{ 0.0 };
+	double pre_x_{ 0.0 }, pre_y_{ 0.0 };
+	double first_x_{ 0.0 }, first_y_{ 0.0 };
 
 	std::shared_ptr<GerberAperture> current_aperture;
 };

@@ -63,8 +63,8 @@ public: // Public interface
 	BoundBox bound_box_;
 
 	// Step-and-Repeat
-	int    CountX, CountY;
-	double StepX, StepY;
+	int    count_x_, count_y_;
+	double ste_x_, step_y_;
 
 	void SetName(const std::string& name);
 

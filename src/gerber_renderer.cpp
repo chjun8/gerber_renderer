@@ -126,15 +126,15 @@ int GerberRender::Draw(std::shared_ptr<RenderCommand> render)
 		}
 
 		solid_circle_ = aperture->SolidCircle();
-		line_width_ = aperture->right_ - aperture->left_;
+		line_width_ = aperture->bound_box_.Right() - aperture->bound_box_.Left();
 
 		solid_rectangle_ = aperture->SolidRectangle();
-		rect_w_ = aperture->right_ - aperture->left_;
-		rect_h_ = aperture->top_ - aperture->bottom_;
+		rect_w_ = aperture->bound_box_.Width();
+		rect_h_ = aperture->bound_box_.Height();
 
 		if (!engine_->PrepareExistAperture(aperture->code_)) {
-			engine_->NewAperture(aperture->left_, aperture->bottom_, aperture->right_, aperture->top_);
-			DrawAperture(aperture->Render(), aperture->left_, aperture->bottom_, aperture->right_, aperture->top_);
+			engine_->NewAperture(aperture->bound_box_.Left(), aperture->bound_box_.Bottom(), aperture->bound_box_.Right(), aperture->bound_box_.Top());
+			DrawAperture(aperture->Render(), aperture->bound_box_.Left(), aperture->bound_box_.Bottom(), aperture->bound_box_.Right(), aperture->bound_box_.Top());
 			engine_->EndDrawNewAperture(aperture->code_);
 		}
 
@@ -256,7 +256,7 @@ int GerberRender::RenderLevel(std::shared_ptr<GerberLevel> level)
 	}
 
 	if (level->IsCopyLayer()) {
-		engine_->CopyLayer(level->CountX, level->CountY, level->StepX, level->StepY);
+		engine_->CopyLayer(level->count_x_, level->count_y_, level->ste_x_, level->step_y_);
 	}
 
 	return 0;

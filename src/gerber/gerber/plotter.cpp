@@ -60,52 +60,52 @@ void Plotter::ApertureSelect(std::shared_ptr<GerberAperture> aperture, unsigned 
 void Plotter::Move(unsigned line_number) {
 	if (in_path_) {
 		if (outline_fill_) {
-			if (firstX != preX || firstY != preY) {
+			if (first_x_ != pre_x_ || first_y_ != pre_y_) {
 				if (gerber_warnings) {
 					LOG(WARNING) << "Line " << line_number << " - Warning: Deprecated feature: Open contours";
 				}
 				level_.AddNew(RenderCommand::gcClose);
 			}
 			auto tmp = level_.AddNew(RenderCommand::gcFill);
-			tmp->End.X = preX;
-			tmp->End.Y = preY;
+			tmp->End.X = pre_x_;
+			tmp->End.Y = pre_y_;
 
 		}
 		else {
 			auto tmp = level_.AddNew(RenderCommand::gcStroke);
-			tmp->End.X = preX;
-			tmp->End.Y = preY;
+			tmp->End.X = pre_x_;
+			tmp->End.Y = pre_y_;
 		}
 	}
 
 	in_path_ = false;
 
-	firstX = Get_mm(level_.X);
-	firstY = Get_mm(level_.Y);
-	preX = firstX;
-	preY = firstY;
+	first_x_ = Get_mm(level_.X);
+	first_y_ = Get_mm(level_.Y);
+	pre_x_ = first_x_;
+	pre_y_ = first_y_;
 }
 
 void Plotter::Line() {
 	if (!in_path_) {
 		if (current_aperture && !outline_fill_) {
 			level_.bound_box_.UpdateBox(
-				preX + current_aperture->left_,
-				preX + current_aperture->right_,
-				preY + current_aperture->top_,
-				preY + current_aperture->bottom_);
+				pre_x_ + current_aperture->bound_box_.Left(),
+				pre_x_ + current_aperture->bound_box_.Right(),
+				pre_y_ + current_aperture->bound_box_.Top(),
+				pre_y_ + current_aperture->bound_box_.Bottom());
 		}
 		else {
-			level_.bound_box_.UpdateBox(preX, preX, preY, preY);
+			level_.bound_box_.UpdateBox(pre_x_, pre_x_, pre_y_, pre_y_);
 		}
 
 		auto tmp = level_.AddNew(RenderCommand::gcBeginLine);
-		tmp->End.X = tmp->X = preX;
-		tmp->End.Y = tmp->Y = preY;
+		tmp->End.X = tmp->X = pre_x_;
+		tmp->End.Y = tmp->Y = pre_y_;
 	}
 	else {
 		if (
-			preX == Get_mm(level_.X) && preY == Get_mm(level_.Y) &&
+			pre_x_ == Get_mm(level_.X) && pre_y_ == Get_mm(level_.Y) &&
 			level_.I == 0.0 && level_.J == 0.0
 			) return;
 	}
@@ -145,18 +145,18 @@ void Plotter::Line() {
 		break;
 	}
 
-	preX = Get_mm(level_.X);
-	preY = Get_mm(level_.Y);
+	pre_x_ = Get_mm(level_.X);
+	pre_y_ = Get_mm(level_.Y);
 
 	if (current_aperture && !outline_fill_) {
 		level_.bound_box_.UpdateBox(
-			preX + current_aperture->left_,
-			preX + current_aperture->right_,
-			preY + current_aperture->top_,
-			preY + current_aperture->bottom_);
+			pre_x_ + current_aperture->bound_box_.Left(),
+			pre_x_ + current_aperture->bound_box_.Right(),
+			pre_y_ + current_aperture->bound_box_.Top(),
+			pre_y_ + current_aperture->bound_box_.Bottom());
 	}
 	else {
-		level_.bound_box_.UpdateBox(preX, preX, preY, preY);
+		level_.bound_box_.UpdateBox(pre_x_, pre_x_, pre_y_, pre_y_);
 	}
 }
 
@@ -170,11 +170,11 @@ void Plotter::Arc() {
 		x1 = -Get_mm(level_.I);
 		y1 = -Get_mm(level_.J);
 
-		x2 = Get_mm(level_.X) - preX - Get_mm(level_.I);
-		y2 = Get_mm(level_.Y) - preY - Get_mm(level_.J);
+		x2 = Get_mm(level_.X) - pre_x_ - Get_mm(level_.I);
+		y2 = Get_mm(level_.Y) - pre_y_ - Get_mm(level_.J);
 
-		x3 = preX + Get_mm(level_.I);
-		y3 = preY + Get_mm(level_.J);
+		x3 = pre_x_ + Get_mm(level_.I);
+		y3 = pre_y_ + Get_mm(level_.J);
 	}
 	else {
 		double i[4], j[4];
@@ -193,7 +193,7 @@ void Plotter::Arc() {
 		int T = 0;
 		double Error = INFINITY;
 		for (int t = 0; t < 4; ++t) {
-			auto a = GetAngle(-i[t], -j[t], Get_mm(level_.X) - preX - i[t], Get_mm(level_.Y) - preY - j[t]);
+			auto a = GetAngle(-i[t], -j[t], Get_mm(level_.X) - pre_x_ - i[t], Get_mm(level_.Y) - pre_y_ - j[t]);
 			if (level_.interpolation_ == giClockwiseCircular) {
 				if (a > 0.0) continue;
 			}
@@ -201,8 +201,8 @@ void Plotter::Arc() {
 				if (a < 0.0) continue;
 			}
 
-			x2 = Get_mm(level_.X) - preX - i[t];
-			y2 = Get_mm(level_.Y) - preY - j[t];
+			x2 = Get_mm(level_.X) - pre_x_ - i[t];
+			y2 = Get_mm(level_.Y) - pre_y_ - j[t];
 			const auto error = fabs((i[t] * i[t] + j[t] * j[t]) - (x2 * x2 + y2 * y2));
 			if (error < Error) {
 				T = t;
@@ -210,8 +210,8 @@ void Plotter::Arc() {
 			}
 		}
 
-		x3 = preX + i[T];
-		y3 = preY + j[T];
+		x3 = pre_x_ + i[T];
+		y3 = pre_y_ + j[T];
 
 		x1 = -i[T];
 		y1 = -j[T];
@@ -225,8 +225,8 @@ void Plotter::Arc() {
 	tmp->X = x3;
 	tmp->Y = y3;
 	tmp->A = angle;
-	tmp->End.X = preX = Get_mm(level_.X);
-	tmp->End.Y = preY = Get_mm(level_.Y);
+	tmp->End.X = pre_x_ = Get_mm(level_.X);
+	tmp->End.Y = pre_y_ = Get_mm(level_.Y);
 
 	auto r = x3 + x1;
 	auto t = y3 + y1;
@@ -259,10 +259,10 @@ void Plotter::Arc() {
 	}
 
 	if (current_aperture && !outline_fill_) {
-		l += current_aperture->left_;
-		b += current_aperture->bottom_;
-		r += current_aperture->right_;
-		t += current_aperture->top_;
+		l += current_aperture->bound_box_.Left();
+		b += current_aperture->bound_box_.Bottom();
+		r += current_aperture->bound_box_.Right();
+		t += current_aperture->bound_box_.Top();
 	}
 
 	level_.bound_box_.UpdateBox(l, r, t, b);
@@ -270,15 +270,15 @@ void Plotter::Arc() {
 
 void Plotter::Flash() {
 	auto tmp = level_.AddNew(RenderCommand::gcFlash);
-	tmp->X = preX;
-	tmp->Y = preY;
+	tmp->X = pre_x_;
+	tmp->Y = pre_y_;
 
 	if (current_aperture) {
 		level_.bound_box_.UpdateBox(
-			preX + current_aperture->left_,
-			preX + current_aperture->right_,
-			preY + current_aperture->top_,
-			preY + current_aperture->bottom_
+			pre_x_ + current_aperture->bound_box_.Left(),
+			pre_x_ + current_aperture->bound_box_.Right(),
+			pre_y_ + current_aperture->bound_box_.Top(),
+			pre_y_ + current_aperture->bound_box_.Bottom()
 		);
 	}
 }

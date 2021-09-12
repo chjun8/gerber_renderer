@@ -1007,10 +1007,10 @@ bool ParameterParser::StepAndRepeat() {
 			break;
 
 		case '*':
-			gerber_.current_level_->CountX = x;
-			gerber_.current_level_->CountY = y;
-			gerber_.current_level_->StepX = Get_mm(i);
-			gerber_.current_level_->StepY = Get_mm(j);
+			gerber_.current_level_->count_x_ = x;
+			gerber_.current_level_->count_y_ = y;
+			gerber_.current_level_->ste_x_ = Get_mm(i);
+			gerber_.current_level_->step_y_ = Get_mm(j);
 			return true;
 
 		default:

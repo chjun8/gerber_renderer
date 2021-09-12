@@ -12,10 +12,7 @@ GerberAperture::GerberAperture() {
 	hole_x_ = -1.0;
 	hole_y_ = -1.0;
 
-	left_ = 1e3;
-	bottom_ = 1e3;
-	right_ = -1e3;
-	top_ = -1e3;
+	bound_box_ = BoundBox(1e3, -1e3, -1e3, 1e3);
 
 	side_count_ = 0;
 	rotation_ = 0.0;
@@ -28,10 +25,7 @@ void GerberAperture::Circle(double d) {
 	type_ = tCircle;
 	dimension_x_ = d;
 
-	left_ = -d / 2.0;
-	bottom_ = -d / 2.0;
-	right_ = d / 2.0;
-	top_ = d / 2.0;
+	bound_box_ = BoundBox(-d / 2.0, d / 2.0, d / 2.0, -d / 2.0);
 }
 
 void GerberAperture::Rectangle(double w, double h) {
@@ -39,10 +33,7 @@ void GerberAperture::Rectangle(double w, double h) {
 	dimension_x_ = w;
 	dimension_y_ = h;
 
-	left_ = -w / 2.0;
-	bottom_ = -h / 2.0;
-	right_ = w / 2.0;
-	top_ = h / 2.0;
+	bound_box_ = BoundBox(-w / 2.0, w / 2.0, h / 2.0, -h / 2.0);
 }
 
 void GerberAperture::Obround(double w, double h) {
@@ -50,10 +41,7 @@ void GerberAperture::Obround(double w, double h) {
 	dimension_x_ = w;
 	dimension_y_ = h;
 
-	left_ = -w / 2.0;
-	bottom_ = -h / 2.0;
-	right_ = w / 2.0;
-	top_ = h / 2.0;
+	bound_box_ = BoundBox(-w / 2.0, w / 2.0, h / 2.0, -h / 2.0);
 }
 
 void GerberAperture::Polygon(double w, int n, double a) {
@@ -62,10 +50,7 @@ void GerberAperture::Polygon(double w, int n, double a) {
 	side_count_ = n;
 	rotation_ = a;
 
-	left_ = -w / 2.0;
-	bottom_ = -w / 2.0;
-	right_ = w / 2.0;
-	top_ = w / 2.0;
+	bound_box_ = BoundBox(-w / 2.0, w / 2.0, w / 2.0, -w / 2.0);
 }
 
 void GerberAperture::HoleCircle(double d) {
@@ -152,16 +137,10 @@ void GerberAperture::UseMacro(
 		}
 
 		if (render == render_commands_.front()) {
-			left_ = l;
-			bottom_ = b;
-			right_ = r;
-			top_ = t;
+			bound_box_ = BoundBox(l, r ,t ,b);
 		}
 		else {
-			if (left_ > l) left_ = l;
-			if (bottom_ > b) bottom_ = b;
-			if (right_ < r) right_ = r;
-			if (top_ < t) top_ = t;
+            bound_box_.UpdateBox(l, r, t, b);
 		}
 	}
 }

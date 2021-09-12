@@ -2,7 +2,7 @@
 #include "gerber_aperture.h"
 #include "plotter.h"
 #include <glog/logging.h>
-
+#include <iostream>
 
 constexpr double kPi = 3.141592653589793238463;
 
@@ -322,14 +322,9 @@ GerberLevel::Segment* GerberLevel::FindNeighbour(Segment* current) {
 			if (dX < 1e-3 && dY < 1e-3) {
 				candidate->Reverse();
 				if (gerber_warnings) {
-					printf(
-						"Strokes2Fills - Warning: "
-						"Joining segments that are close, but not coincident:\n"
-						"    dX = %08.6lf mm (%07.5lf mil)\n"
-						"    dY = %08.6lf mm (%07.5lf mil)\n",
-						dX, dX / 25.4e-3,
-						dY, dY / 25.4e-3
-					);
+                    std::cout << "Strokes2Fills - Warning: Joining segments that are close, but not coincident:" << std::endl;
+                    std::cout << "dX = " << dX << " mm (" << dX / 25.4e-3 << " mil)" << std::endl;
+                    std::cout << "dY = " << dY << " mm (" << dY / 25.4e-3 << " mil)" << std::endl;
 				}
 				return candidate;
 			}

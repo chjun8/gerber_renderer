@@ -12,8 +12,9 @@ bool MCodeParser::Run()
 	gerber_.start_of_level_ = false;
 
 	int code = 0;
-	if (!gerber_.gerber_file_.GetInteger(code))
+    if (!gerber_.gerber_file_.GetInteger(code)) {
 		return false;
+    }
 
 	switch (code) {
 	case 0: // Program stop

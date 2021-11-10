@@ -65,9 +65,9 @@ private:
 
 	std::vector<std::shared_ptr<RenderCommand>> render_commands_;
 
-	void Add(std::shared_ptr<RenderCommand> Render);
+	void Add(std::shared_ptr<RenderCommand> render);
 
-	double Evaluate(OPERATOR_ITEM* Root);
+	double Evaluate(OPERATOR_ITEM* root);
 
 	void RenderLine(
 		double x1, double y1,
@@ -78,33 +78,32 @@ private:
 		double A
 	);
 
-	bool RenderCircle(PRIMITIVE_ITEM* Primitive);
-	bool RenderLineVector(PRIMITIVE_ITEM* Primitive);
-	bool RenderLineCenter(PRIMITIVE_ITEM* Primitive);
-	bool RenderLineLowerLeft(PRIMITIVE_ITEM* Primitive);
-	bool RenderOutline(PRIMITIVE_ITEM* Primitive);
-	bool RenderPolygon(PRIMITIVE_ITEM* Primitive);
-	bool RenderMoire(PRIMITIVE_ITEM* Primitive);
-	bool RenderThermal(PRIMITIVE_ITEM* Primitive);
-	bool RenderAssignment(PRIMITIVE_ITEM* Primitive);
+	bool RenderCircle(PRIMITIVE_ITEM* primitive);
+	bool RenderLineVector(PRIMITIVE_ITEM* primitive);
+	bool RenderLineCenter(PRIMITIVE_ITEM* primitive);
+	bool RenderLineLowerLeft(PRIMITIVE_ITEM* primitive);
+	bool RenderOutline(PRIMITIVE_ITEM* primitive);
+	bool RenderPolygon(PRIMITIVE_ITEM* primitive);
+	bool RenderMoire(PRIMITIVE_ITEM* primitive);
+	bool RenderThermal(PRIMITIVE_ITEM* primitive);
+	bool RenderAssignment(PRIMITIVE_ITEM* primitive);
 
-	double* Modifiers;
-	int     ModifierCount;
-	bool    NewModifiers;
-	bool    exposure_;
+	double* modifiers_;
+	int modifier_count_;
+	bool new_modifiers_;
+	bool exposure_;
 
-	std::string Buffer;
-	unsigned Length;
-	unsigned Index;
-	bool Inches;
+	std::string buffer_;
+	unsigned index_;
+	bool inches_;
 
-	double Get_mm(double Number);
+	double Get_mm(double number);
 
-	bool Float(double* Number);
-	bool Integer(int* Integer);
+	bool Float(double* number);
+	bool Integer(int* integer);
 	void SkipWhiteSpace();
 
-	OPERATOR_ITEM* Modifier();
+	OPERATOR_ITEM* modifier();
 	OPERATOR_ITEM* Term();
 	OPERATOR_ITEM* Factor();
 	OPERATOR_ITEM* Variable();
@@ -125,11 +124,11 @@ public:
 	GerberMacro();
 	~GerberMacro();
 
-	std::string Name;
+	std::string name_;
 
 	// Modifiers is a null-terminated array
 	// Returns a new list of render commands => The user must free the memory
 	std::vector<std::shared_ptr<RenderCommand>> Render(double* Modifiers, int ModifierCount);
 
-	bool LoadMacro(const char* buffer, unsigned Length, bool Inches);
+	bool LoadMacro(const std::string& buffer, bool Inches);
 };

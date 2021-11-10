@@ -63,8 +63,8 @@ public: // Public interface
 	BoundBox bound_box_;
 
 	// Step-and-Repeat
-	int    CountX, CountY;
-	double StepX, StepY;
+	int    count_x_, count_y_;
+	double ste_x_, step_y_;
 
 	void SetName(const std::string& name);
 
@@ -80,7 +80,7 @@ public: // Public interface
 	GERBER_EXPOSURE      exposure_;
 	GERBER_INTERPOLATION interpolation_;
 
-	void ApertureSelect(std::shared_ptr<GerberAperture> aperture_, unsigned LineNumber);
+	void ApertureSelect(std::shared_ptr<GerberAperture> aperture_, unsigned line_number);
 	void OutlineBegin(unsigned LineNumber);
 	void OutlineEnd(unsigned LineNumber);
 	void Do(unsigned LineNumber);

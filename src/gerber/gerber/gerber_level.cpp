@@ -2,7 +2,7 @@
 #include "gerber_aperture.h"
 #include "plotter.h"
 #include <glog/logging.h>
-
+#include <iostream>
 
 constexpr double kPi = 3.141592653589793238463;
 
@@ -11,8 +11,8 @@ GerberLevel::GerberLevel(std::shared_ptr<GerberLevel> previous_level, GERBER_UNI
 	bound_box_(1e3, -1e3, -1e3, 1e3) {
 	plotter_ = std::make_unique<Plotter>(*this);
 
-	CountX = CountY = 1;
-	StepX = StepY = 0.0;
+	count_x_ = count_y_ = 1;
+	ste_x_ = step_y_ = 0.0;
 
 	negative_ = false;
 	relative_ = false;
@@ -38,10 +38,10 @@ GerberLevel::GerberLevel(std::shared_ptr<GerberLevel> previous_level, GERBER_UNI
 		X = previous_level->X;
 		Y = previous_level->Y;
 
-		CountX = previous_level->CountX;
-		CountY = previous_level->CountY;
-		StepX = previous_level->StepX;
-		StepY = previous_level->StepY;
+		count_x_ = previous_level->count_x_;
+		count_y_ = previous_level->count_y_;
+		ste_x_ = previous_level->ste_x_;
+		step_y_ = previous_level->step_y_;
 
 		negative_ = previous_level->negative_;
 		plotter_->SetInPath(previous_level->plotter_->IsInPath());
@@ -53,13 +53,13 @@ GerberLevel::~GerberLevel() {
 
 bool GerberLevel::IsCopyLayer()
 {
-	return CountX > 1 || CountY > 1;
+	return count_x_ > 1 || count_y_ > 1;
 }
 
 double GerberLevel::GetRight() const
 {
-	if (CountX > 1) {
-		return bound_box_.Left() + StepX * (CountX - 1) + bound_box_.Right() - bound_box_.Left();
+	if (count_x_ > 1) {
+		return bound_box_.Left() + ste_x_ * (count_x_ - 1) + bound_box_.Right() - bound_box_.Left();
 	}
 
 	return bound_box_.Right();
@@ -67,8 +67,8 @@ double GerberLevel::GetRight() const
 
 double GerberLevel::GetTop() const
 {
-	if (CountY > 1) {
-		return bound_box_.Bottom() + StepY * (CountY - 1) + bound_box_.Top() - bound_box_.Bottom();
+	if (count_y_ > 1) {
+		return bound_box_.Bottom() + step_y_ * (count_y_ - 1) + bound_box_.Top() - bound_box_.Bottom();
 	}
 
 	return bound_box_.Top();
@@ -322,14 +322,9 @@ GerberLevel::Segment* GerberLevel::FindNeighbour(Segment* current) {
 			if (dX < 1e-3 && dY < 1e-3) {
 				candidate->Reverse();
 				if (gerber_warnings) {
-					printf(
-						"Strokes2Fills - Warning: "
-						"Joining segments that are close, but not coincident:\n"
-						"    dX = %08.6lf mm (%07.5lf mil)\n"
-						"    dY = %08.6lf mm (%07.5lf mil)\n",
-						dX, dX / 25.4e-3,
-						dY, dY / 25.4e-3
-					);
+                    std::cout << "Strokes2Fills - Warning: Joining segments that are close, but not coincident:" << std::endl;
+                    std::cout << "dX = " << dX << " mm (" << dX / 25.4e-3 << " mil)" << std::endl;
+                    std::cout << "dY = " << dY << " mm (" << dY / 25.4e-3 << " mil)" << std::endl;
 				}
 				return candidate;
 			}
